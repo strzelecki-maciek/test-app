@@ -1,0 +1,55 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-green
+spec:
+  selector:
+    matchLabels:
+      app: app
+      deployment: green
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: app
+        deployment: green
+    spec:
+      containers:
+      - name: app
+        image: mstrzelecki/app:0.0.2
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 5000
+        livenessProbe:
+          httpGet:
+            path: /healthy
+            port: http
+            scheme: HTTP
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+            scheme: HTTP
+        env:
+        - name: FLASK_APP
+          value: app.py
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-green
+  labels:
+    app: app
+    deployment: green
+spec:
+  selector:
+    app: app
+    deployment: green
+  ports:
+  - port: 5000
+    targetPort: 5000
+    protocol: TCP
+    name: http
